@@ -99,6 +99,7 @@ while (k < maxIterations)
         
         
     end
+   
     
     k = k + 1; 
     
@@ -111,7 +112,7 @@ options = optimoptions('quadprog','Display','iter');
 x = quadprog(H,Q,[],[],E,e,Z_MIN,Z_MAX,[],options);
 
 %Display Algorithm Results vs MATLAB's Quadprog results
-disp("Algorithm Results : ") 
+disp("Algorithm Results: ") 
 disp(Z)
 
 disp ("Quadprog Results: ")
