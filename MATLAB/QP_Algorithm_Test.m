@@ -49,15 +49,10 @@ A = 1;
 D = 4; %largest value of H matrix
 U = 4.33; %Arbitrary Positive Number
 
-
-
 %Define Iterations and Start Program Timer
 tic
-k = 0; 
-maxIterations = 1; 
-TOL = 10^-5; 
-ERROR = 1;
-
+k = 0;
+maxIterations = 200;  
 
 while (k < maxIterations)
     
@@ -86,7 +81,7 @@ while (k < maxIterations)
         else 
             Z(i) = Z(i) - delta; 
         end 
-       
+             
     end 
     
     %Compute Lambda_k+1
@@ -104,9 +99,7 @@ while (k < maxIterations)
         
     end
    
-    
     k = k + 1; 
-  
     
 end 
 
