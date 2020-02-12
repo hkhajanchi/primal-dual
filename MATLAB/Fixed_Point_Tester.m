@@ -32,7 +32,7 @@ x = 1241;
 
 adc_interpretation = fi([],1,16,8,fimath_obj);
 
-adc_interpretation.int = 1241; 
+adc_interpretation.int = x; 
 
 disp('Q8.8 Raw Interpretation of ADC Sample: ')
 disp(adc_interpretation.Data); 

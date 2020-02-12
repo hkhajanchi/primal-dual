@@ -15,10 +15,7 @@
 % q = [-2 -3]
 
 % This script uses a novel SOR-like method that uses a matrix splitting
-% strategy for fast convergence. Developed by PI Adegbege and Haley
-% Blanchard 
-
-% This script will be used to benchmark an HDL-based implementation of the
+% strategy for fast convergence. This script will be used to benchmark an HDL-based implementation of the
 % same algorithm
 
 %Clear MATLAB Workspace
@@ -33,7 +30,7 @@ Q = [-2 -3];
 Z_MIN = -5; 
 Z_MAX = 5; 
 E = [3 -1];
-e = [2]; 
+e = [0.5]; 
 
 %Loop Parameters for Algorithm 
 M = size(H,1); 

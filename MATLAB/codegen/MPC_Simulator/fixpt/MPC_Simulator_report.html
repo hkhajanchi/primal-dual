@@ -1,0 +1,344 @@
+<!DOCTYPE HTML>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>Fixed-Point Report for MPC_Simulator</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style>
+	body { font-family: monospace; }
+	h2 { font-family: Arial, Helvetica, sans-serif; color: #990000; margin-top: 50px; }
+	table,th,td { border: 1px solid black; }
+	table { margin-top: 30px; }
+	th { align: center; font-weight: bold; }
+	tr.h { background-color: #99CCFF; }
+	tr.a { background-color: #EEEEFF; }
+	tr.b { background-color: #FFFFFF; }
+	tr.c { background-color: #FFA500; }
+	tr.a td, tr.b td { border-style: none; }
+	td.left { text-align: left; }
+	td.right { text-align: right; }
+	td.center { text-align: center; }
+	td.bold { font-weight: bold; }
+	pre { padding: 0px; margin: 0px; }
+	span { font-style: italic; }
+	.code, .code tr, .code th, .code td { border: none; border-collapse: collapse; }
+	.padd { padding-left: 5px; }
+	td.cov, th.cov { width: 50px; height: 20px; text-align: center; font-weight: bold; border-right: 2px solid black; cell-spacing: 0px; }
+	td.cov { vertical-align: top; }
+	td.black { color: #000000; font-weight: bold; padding-top: 4px; }
+	td.white { color: #FFFFFF; font-weight: bold; padding-top: 4px; }
+	.code th { font-weight: bold; border-bottom: 2px solid black; }
+</style>
+</head>
+<body>
+<h3>Generated on  2019-10-28 18:24:36</h3>
+<p>The following table shows fixed point instrumentation results</p>
+<h2>Fixed-Point Report <span>MPC_Simulator<span></h2>
+<TABLE class="code">
+<TR>
+<TH class="cov padd">Simulation Coverage</TH>
+<TH>Code</TH>
+</TR>
+<TR>
+<TD class="cov white" style="background-color: rgb(5,112,9);">100%</TD>
+<TD class="padd"><pre>function [y_t, u_t] = MPC_Simulator(ref_1, ref_2, noise, T,H,q_,E,F1,z_min,z_max,n,m,N_h,A_d,B_d,C_d,Aob,Bob,Cob,Ld)
+
+
+    % -------- System Initial Conditions ---------
+
+    x_d_obs = zeros(n+m,T); 
+    x_plant = zeros(n,T); 
+    u_t = zeros(m,T);
+    z = zeros( (n+m)*N_h, T);
+    y_t = zeros(m,T); 
+    y_obs = zeros(m,T); 
+    
+    
+</pre></TD>
+</TR>
+<TR>
+<TD class="cov black" style="background-color: rgb(255,160,118);">Once</TD>
+<TD class="padd"><pre>    for i = 1:T-1
+
+        %Simulate Plant 
+        x_plant(:,i+1) = A_d*x_plant(:,i) + B_d*u_t(:,i); 
+        y_t(:,i) = C_d * x_plant(:,i)+0.01*noise(:,i); 
+
+        %Observer 
+        x_d_obs(:,i+1) = Aob * x_d_obs(:,i) + Bob*u_t(:,i) - Ld * ( Cob*x_d_obs(:,i) - y_t(:,i) );
+
+
+        %Scale Reference Voltage to height 
+        curr_ref_t0 = ref_1(:,i) * 7.15; %V to Cm scaling factor
+        curr_ref_t1 = ref_2(:,i) * 7.15; 
+
+        curr_ref = [curr_ref_t0; curr_ref_t1];
+
+        %Compute f and e Matrix 
+        f = q_ * (curr_ref - x_d_obs(n+1:end,i)); 
+        e = F1 * x_d_obs(1:n,i);  
+        z(:,i) = PrimalDual(H,-f,E,e,z_min,z_max);    
+
+
+        %Implement DAC Based Saturation
+</pre></TD>
+</TR>
+<TR>
+<TD class="cov white" style="background-color: rgb(157,38,35);">0%</TD>
+<TD class="padd"><pre>        for j = 1:2 
+            if z(j,i) &lt; 0 
+                u_t(j,i+1) = 0; 
+            elseif z(j,i) &gt; 3.3 
+                u_t(j,i+1) = 3.3; 
+            else     
+                u_t(j,i+1) = z(j,i); 
+
+            end</pre></TD>
+</TR>
+<TR>
+<TD class="cov white" style="background-color: rgb(5,112,9);">100%</TD>
+<TD class="padd"><pre> 
+        end 
+
+         u_t(:,i+1) = z(1:m,i); 
+
+    end 
+
+%% ------- Generate Plots -----------------
+
+
+%subplot(2,1,1);
+%plot(ref_1 * 7.15,'r--','Linewidth',4); 
+%plot(ref_2 * 7.15, 'r--', 'Linewidth',4); 
+%plot(y_t','b-','Linewidth',2); hold off;
+%ylabel('Output and reference');
+
+%subplot(2,1,2);
+%plot(u_t(:,1:T)','b-','Linewidth',2);
+%xlabel('Time (sample number)');
+   
+end</pre></TD>
+</TR>
+</TABLE>
+<TABLE><TR class="h"><th>Variable Name</th><th>Type</th><th>Sim Min</th><th>Sim Max</th><th>Static Min</th><th>Static Max</th><th>Whole Number</th><th>ProposedType <BR /> (Best For WL = 16)</th></TR><TR class="a">
+<TD class="left">A_d</TD><TD class="left">double 4 x 4 </TD><TD class="right">0</TD><TD class="right">0.711952479405245</TD><TD class="right"></TD><TD class="right"></TD><TD class="left">No</TD><TD class="left">numerictype(0, 16, 16)</TD></TR>
+<TR class="b">
+<TD class="left">Aob</TD><TD class="left">double 6 x 6 </TD><TD class="right">0</TD><TD class="right">1</TD><TD class="right"></TD><TD class="right"></TD><TD class="left">No</TD><TD class="left">numerictype(0, 16, 15)</TD></TR>
+<TR class="a">
+<TD class="left">B_d</TD><TD class="left">double 4 x 2 </TD><TD class="right">0</TD><TD class="right">0.5769560190339585</TD><TD class="right"></TD><TD class="right"></TD><TD class="left">No</TD><TD class="left">numerictype(0, 16, 16)</TD></TR>
+<TR class="b">
+<TD class="left">Bob</TD><TD class="left">double 6 x 2 </TD><TD class="right">0</TD><TD class="right">0.5769560190339585</TD><TD class="right"></TD><TD class="right"></TD><TD class="left">No</TD><TD class="left">numerictype(0, 16, 16)</TD></TR>
+<TR class="a">
+<TD class="left">C_d</TD><TD class="left">double 2 x 4 </TD><TD class="right">0</TD><TD class="right">6.024096385542168</TD><TD class="right"></TD><TD class="right"></TD><TD class="left">No</TD><TD class="left">numerictype(0, 16, 13)</TD></TR>
+<TR class="b">
+<TD class="left">Cob</TD><TD class="left">double 2 x 6 </TD><TD class="right">0</TD><TD class="right">6.024096385542168</TD><TD class="right"></TD><TD class="right"></TD><TD class="left">No</TD><TD class="left">numerictype(0, 16, 13)</TD></TR>
+<TR class="a">
+<TD class="left">E</TD><TD class="left">double 20 x 30 </TD><TD class="right">-0.711952479405245</TD><TD class="right">1</TD><TD class="right"></TD><TD class="right"></TD><TD class="left">No</TD><TD class="left">numerictype(1, 16, 14)</TD></TR>
+<TR class="b">
+<TD class="left">F1</TD><TD class="left">double 20 x 4 </TD><TD class="right">0</TD><TD class="right">0.711952479405245</TD><TD class="right"></TD><TD class="right"></TD><TD class="left">No</TD><TD class="left">numerictype(0, 16, 16)</TD></TR>
+<TR class="a">
+<TD class="left">H</TD><TD class="left">double 30 x 30 </TD><TD class="right">-0.10935983626890461</TD><TD class="right">10</TD><TD class="right"></TD><TD class="right"></TD><TD class="left">No</TD><TD class="left">numerictype(1, 16, 11)</TD></TR>
+<TR class="b">
+<TD class="left">Ld</TD><TD class="left">double 6 x 2 </TD><TD class="right">-0.06308364129412966</TD><TD class="right">1.4240396425069026</TD><TD class="right"></TD><TD class="right"></TD><TD class="left">No</TD><TD class="left">numerictype(1, 16, 14)</TD></TR>
+<TR class="a">
+<TD class="left">N_h</TD><TD class="left">double</TD><TD class="right">5</TD><TD class="right">5</TD><TD class="right"></TD><TD class="right"></TD><TD class="left">Yes</TD><TD class="left">numerictype(0, 3, 0)</TD></TR>
+<TR class="b">
+<TD class="left">T</TD><TD class="left">double</TD><TD class="right">1000</TD><TD class="right">1000</TD><TD class="right"></TD><TD class="right"></TD><TD class="left">Yes</TD><TD class="left">numerictype(0, 10, 0)</TD></TR>
+<TR class="a">
+<TD class="left">curr_ref</TD><TD class="left">double 2 x 1 </TD><TD class="right">7.579000000000001</TD><TD class="right">15.158000000000001</TD><TD class="right"></TD><TD class="right"></TD><TD class="left">No</TD><TD class="left">numerictype(0, 16, 12)</TD></TR>
+<TR class="b">
+<TD class="left">curr_ref_t0</TD><TD class="left">double</TD><TD class="right">7.579000000000001</TD><TD class="right">15.158000000000001</TD><TD class="right"></TD><TD class="right"></TD><TD class="left">No</TD><TD class="left">numerictype(0, 16, 12)</TD></TR>
+<TR class="a">
+<TD class="left">curr_ref_t1</TD><TD class="left">double</TD><TD class="right">12.126400000000002</TD><TD class="right">15.158000000000001</TD><TD class="right"></TD><TD class="right"></TD><TD class="left">No</TD><TD class="left">numerictype(0, 16, 12)</TD></TR>
+<TR class="b">
+<TD class="left">e</TD><TD class="left">double 20 x 1 </TD><TD class="right">-7.973701566449778e-07</TD><TD class="right">1.9783479381969817</TD><TD class="right"></TD><TD class="right"></TD><TD class="left">No</TD><TD class="left">numerictype(1, 16, 14)</TD></TR>
+<TR class="a">
+<TD class="left">f</TD><TD class="left">double 30 x 1 </TD><TD class="right">0.06817501303332851</TD><TD class="right">11.407380795742124</TD><TD class="right"></TD><TD class="right"></TD><TD class="left">No</TD><TD class="left">numerictype(0, 16, 12)</TD></TR>
+<TR class="b">
+<TD class="left">i</TD><TD class="left">double</TD><TD class="right">1</TD><TD class="right">999</TD><TD class="right"></TD><TD class="right"></TD><TD class="left">Yes</TD><TD class="left">numerictype(0, 10, 0)</TD></TR>
+<TR class="a">
+<TD class="left">j</TD><TD class="left">double</TD><TD class="right">1</TD><TD class="right">2</TD><TD class="right"></TD><TD class="right"></TD><TD class="left">Yes</TD><TD class="left">numerictype(0, 2, 0)</TD></TR>
+<TR class="b">
+<TD class="left">m</TD><TD class="left">double</TD><TD class="right">2</TD><TD class="right">2</TD><TD class="right"></TD><TD class="right"></TD><TD class="left">Yes</TD><TD class="left">numerictype(0, 2, 0)</TD></TR>
+<TR class="a">
+<TD class="left">n</TD><TD class="left">double</TD><TD class="right">4</TD><TD class="right">4</TD><TD class="right"></TD><TD class="right"></TD><TD class="left">Yes</TD><TD class="left">numerictype(0, 3, 0)</TD></TR>
+<TR class="b">
+<TD class="left">noise</TD><TD class="left">double 2 x 1000 </TD><TD class="right">-0.05681913975443861</TD><TD class="right">0.056328223230970906</TD><TD class="right"></TD><TD class="right"></TD><TD class="left">No</TD><TD class="left">numerictype(1, 16, 19)</TD></TR>
+<TR class="a">
+<TD class="left">q_</TD><TD class="left">double 30 x 2 </TD><TD class="right">-0.8068967796341059</TD><TD class="right">1.434483163793966</TD><TD class="right"></TD><TD class="right"></TD><TD class="left">No</TD><TD class="left">numerictype(1, 16, 14)</TD></TR>
+<TR class="b">
+<TD class="left">ref_1</TD><TD class="left">double 1 x 1000 </TD><TD class="right">1.06</TD><TD class="right">2.12</TD><TD class="right"></TD><TD class="right"></TD><TD class="left">No</TD><TD class="left">numerictype(0, 16, 14)</TD></TR>
+<TR class="a">
+<TD class="left">ref_2</TD><TD class="left">double 1 x 1000 </TD><TD class="right">1.6960000000000002</TD><TD class="right">2.12</TD><TD class="right"></TD><TD class="right"></TD><TD class="left">No</TD><TD class="left">numerictype(0, 16, 14)</TD></TR>
+<TR class="b">
+<TD class="left">u_t</TD><TD class="left">double :Inf x Inf </TD><TD class="right">0</TD><TD class="right">1.3832360985324077</TD><TD class="right"></TD><TD class="right"></TD><TD class="left">No</TD><TD class="left">numerictype(0, 16, 15)</TD></TR>
+<TR class="a">
+<TD class="left">x_d_obs</TD><TD class="left">double :Inf x Inf </TD><TD class="right">-0.0008545925588100776</TD><TD class="right">2.521213211602485</TD><TD class="right"></TD><TD class="right"></TD><TD class="left">No</TD><TD class="left">numerictype(1, 16, 13)</TD></TR>
+<TR class="b">
+<TD class="left">x_plant</TD><TD class="left">double :Inf x Inf </TD><TD class="right">0</TD><TD class="right">2.5212140998600154</TD><TD class="right"></TD><TD class="right"></TD><TD class="left">No</TD><TD class="left">numerictype(0, 16, 14)</TD></TR>
+<TR class="a">
+<TD class="left">y_obs</TD><TD class="left">double :Inf x Inf </TD><TD class="right">0</TD><TD class="right">0</TD><TD class="right"></TD><TD class="right"></TD><TD class="left">Yes</TD><TD class="left">numerictype(0, 1, 0)</TD></TR>
+<TR class="b">
+<TD class="left">y_t</TD><TD class="left">double :Inf x Inf </TD><TD class="right">-4.4839741088290604e-05</TD><TD class="right">15.188046396185607</TD><TD class="right"></TD><TD class="right"></TD><TD class="left">No</TD><TD class="left">numerictype(1, 16, 11)</TD></TR>
+<TR class="a">
+<TD class="left">z</TD><TD class="left">double :Inf x Inf </TD><TD class="right">0</TD><TD class="right">2.520950168303235</TD><TD class="right"></TD><TD class="right"></TD><TD class="left">No</TD><TD class="left">numerictype(0, 16, 14)</TD></TR>
+<TR class="b">
+<TD class="left">z_max</TD><TD class="left">double 30 x 1 </TD><TD class="right">3</TD><TD class="right">15</TD><TD class="right"></TD><TD class="right"></TD><TD class="left">Yes</TD><TD class="left">numerictype(0, 4, 0)</TD></TR>
+<TR class="a">
+<TD class="left">z_min</TD><TD class="left">double 30 x 1 </TD><TD class="right">-15</TD><TD class="right">0</TD><TD class="right"></TD><TD class="right"></TD><TD class="left">Yes</TD><TD class="left">numerictype(1, 5, 0)</TD></TR>
+</TABLE>
+
+<h2>Fixed-Point Report <span>PrimalDual<span></h2>
+<TABLE class="code">
+<TR>
+<TH class="cov padd">Simulation Coverage</TH>
+<TH>Code</TH>
+</TR>
+<TR>
+<TD class="cov white" style="background-color: rgb(5,112,9);">100%</TD>
+<TD class="padd"><pre>function Z = PrimalDual(H,Q,E,e,Z_MIN,Z_MAX)
+
+
+% Define Loop Parameters
+x = size(H,1); 
+y = size(E,1); 
+
+% Instantiate z and lambda vectors 
+Z = zeros (x,1); 
+L = zeros (y,1); 
+
+% Convergence Parameters 
+
+D = max(max(H)); 
+U = 4.33; %Arbitrary Positive Number
+W = 1; 
+A = 1; 
+
+k = 0; 
+maxIterations = 200; 
+
+
+</pre></TD>
+</TR>
+<TR>
+<TD class="cov white" style="background-color: rgb(-45765,-25758,-43771);">20000%</TD>
+<TD class="padd"><pre>while (k &lt; maxIterations)
+    
+    %Compute Z_k+1
+    
+    for i = 1:x
+        delta = 0; 
+        
+        temp1 = 0; 
+        temp2 = 0; 
+        
+</pre></TD>
+</TR>
+<TR>
+<TD class="cov white" style="background-color: rgb(-9199765,-5199758,-8799771);">4000000%</TD>
+<TD class="padd"><pre>        for j = 1:x
+            temp1 = temp1 + H(i,j)*Z(j);
+        end 
+        
+</pre></TD>
+</TR>
+<TR>
+<TD class="cov black" style="background-color: rgb(92235,52242,88229);">-40000%</TD>
+<TD class="padd"><pre>        for j = 1:y
+            temp2 = temp2 + E(j,i)*L(j);
+        end</pre></TD>
+</TR>
+<TR>
+<TD class="cov white" style="background-color: rgb(-45765,-25758,-43771);">20000%</TD>
+<TD class="padd"><pre> 
+        
+        delta = A * ((temp1-temp2) + Q(i))/D; 
+        
+        %Projection 
+</pre></TD>
+</TR>
+<TR>
+<TD class="cov white" style="background-color: rgb(157,38,35);">0%</TD>
+<TD class="padd"><pre>        if ((Z(i) - delta) &lt; Z_MIN(i))
+            Z(i) = Z_MIN(i); 
+        elseif ((Z(i) - delta) &gt; Z_MAX(i))
+            Z(i) = Z_MAX(i); 
+        else 
+            Z(i) = Z(i) - delta; 
+        end</pre></TD>
+</TR>
+<TR>
+<TD class="cov white" style="background-color: rgb(5,112,9);">100%</TD>
+<TD class="padd"><pre> 
+             
+    end 
+    
+    %Compute Lambda_k+1
+    
+    for i = 1:y
+        delta_lambda = 0; 
+        
+        for j = 1:x 
+            delta_lambda = delta_lambda + E(i,j)*Z(j);
+        end 
+        
+        delta_lambda = W * (delta_lambda - e(i)) / U; 
+        L(i) = L(i) - delta_lambda; 
+        
+        
+    end
+   
+    k = k + 1; 
+    
+end 
+
+end</pre></TD>
+</TR>
+</TABLE>
+<TABLE><TR class="h"><th>Variable Name</th><th>Type</th><th>Sim Min</th><th>Sim Max</th><th>Static Min</th><th>Static Max</th><th>Whole Number</th><th>ProposedType <BR /> (Best For WL = 16)</th></TR><TR class="a">
+<TD class="left">A</TD><TD class="left">double</TD><TD class="right">1</TD><TD class="right">1</TD><TD class="right"></TD><TD class="right"></TD><TD class="left">Yes</TD><TD class="left">numerictype(0, 1, 0)</TD></TR>
+<TR class="b">
+<TD class="left">D</TD><TD class="left">double</TD><TD class="right">10</TD><TD class="right">10</TD><TD class="right"></TD><TD class="right"></TD><TD class="left">Yes</TD><TD class="left">numerictype(0, 4, 0)</TD></TR>
+<TR class="a">
+<TD class="left">E</TD><TD class="left">double 20 x 30 </TD><TD class="right">-0.711952479405245</TD><TD class="right">1</TD><TD class="right"></TD><TD class="right"></TD><TD class="left">No</TD><TD class="left">numerictype(1, 16, 14)</TD></TR>
+<TR class="b">
+<TD class="left">H</TD><TD class="left">double 30 x 30 </TD><TD class="right">-0.10935983626890461</TD><TD class="right">10</TD><TD class="right"></TD><TD class="right"></TD><TD class="left">No</TD><TD class="left">numerictype(1, 16, 11)</TD></TR>
+<TR class="a">
+<TD class="left">L</TD><TD class="left">double 20 x 1 </TD><TD class="right">-3.325542092771341</TD><TD class="right">2.65870956000275</TD><TD class="right"></TD><TD class="right"></TD><TD class="left">No</TD><TD class="left">numerictype(1, 16, 13)</TD></TR>
+<TR class="b">
+<TD class="left">Q</TD><TD class="left">double 30 x 1 </TD><TD class="right">-11.407380795742124</TD><TD class="right">-0.06817501303332851</TD><TD class="right"></TD><TD class="right"></TD><TD class="left">No</TD><TD class="left">numerictype(1, 16, 11)</TD></TR>
+<TR class="a">
+<TD class="left">U</TD><TD class="left">double</TD><TD class="right">4.33</TD><TD class="right">4.33</TD><TD class="right"></TD><TD class="right"></TD><TD class="left">No</TD><TD class="left">numerictype(0, 16, 13)</TD></TR>
+<TR class="b">
+<TD class="left">W</TD><TD class="left">double</TD><TD class="right">1</TD><TD class="right">1</TD><TD class="right"></TD><TD class="right"></TD><TD class="left">Yes</TD><TD class="left">numerictype(0, 1, 0)</TD></TR>
+<TR class="a">
+<TD class="left">Z</TD><TD class="left">double 30 x 1 </TD><TD class="right">-0.2691473549767828</TD><TD class="right">3.02694513234252</TD><TD class="right"></TD><TD class="right"></TD><TD class="left">No</TD><TD class="left">numerictype(1, 16, 13)</TD></TR>
+<TR class="b">
+<TD class="left">Z_MAX</TD><TD class="left">double 30 x 1 </TD><TD class="right">3</TD><TD class="right">15</TD><TD class="right"></TD><TD class="right"></TD><TD class="left">Yes</TD><TD class="left">numerictype(0, 4, 0)</TD></TR>
+<TR class="a">
+<TD class="left">Z_MIN</TD><TD class="left">double 30 x 1 </TD><TD class="right">-15</TD><TD class="right">0</TD><TD class="right"></TD><TD class="right"></TD><TD class="left">Yes</TD><TD class="left">numerictype(1, 5, 0)</TD></TR>
+<TR class="b">
+<TD class="left">delta</TD><TD class="left">double</TD><TD class="right">-1.1407380795742124</TD><TD class="right">0.03967995350767217</TD><TD class="right"></TD><TD class="right"></TD><TD class="left">No</TD><TD class="left">numerictype(1, 16, 14)</TD></TR>
+<TR class="a">
+<TD class="left">delta_lambda</TD><TD class="left">double</TD><TD class="right">-2.771551911909867</TD><TD class="right">2.570533097417917</TD><TD class="right"></TD><TD class="right"></TD><TD class="left">No</TD><TD class="left">numerictype(1, 16, 13)</TD></TR>
+<TR class="b">
+<TD class="left">e</TD><TD class="left">double 20 x 1 </TD><TD class="right">-7.973701566449778e-07</TD><TD class="right">1.9783479381969817</TD><TD class="right"></TD><TD class="right"></TD><TD class="left">No</TD><TD class="left">numerictype(1, 16, 14)</TD></TR>
+<TR class="a">
+<TD class="left">i</TD><TD class="left">double</TD><TD class="right">1</TD><TD class="right">30</TD><TD class="right"></TD><TD class="right"></TD><TD class="left">Yes</TD><TD class="left">numerictype(0, 5, 0)</TD></TR>
+<TR class="b">
+<TD class="left">j</TD><TD class="left">double</TD><TD class="right">1</TD><TD class="right">30</TD><TD class="right"></TD><TD class="right"></TD><TD class="left">Yes</TD><TD class="left">numerictype(0, 5, 0)</TD></TR>
+<TR class="a">
+<TD class="left">k</TD><TD class="left">double</TD><TD class="right">0</TD><TD class="right">200</TD><TD class="right"></TD><TD class="right"></TD><TD class="left">Yes</TD><TD class="left">numerictype(0, 8, 0)</TD></TR>
+<TR class="b">
+<TD class="left">maxIterations</TD><TD class="left">double</TD><TD class="right">200</TD><TD class="right">200</TD><TD class="right"></TD><TD class="right"></TD><TD class="left">Yes</TD><TD class="left">numerictype(0, 8, 0)</TD></TR>
+<TR class="a">
+<TD class="left">temp1</TD><TD class="left">double</TD><TD class="right">-0.2691473549767828</TD><TD class="right">13.83234968690321</TD><TD class="right"></TD><TD class="right"></TD><TD class="left">No</TD><TD class="left">numerictype(1, 16, 11)</TD></TR>
+<TR class="b">
+<TD class="left">temp2</TD><TD class="left">double</TD><TD class="right">-3.325491535599259</TD><TD class="right">2.65870956000275</TD><TD class="right"></TD><TD class="right"></TD><TD class="left">No</TD><TD class="left">numerictype(1, 16, 13)</TD></TR>
+<TR class="a">
+<TD class="left">x</TD><TD class="left">double</TD><TD class="right">30</TD><TD class="right">30</TD><TD class="right"></TD><TD class="right"></TD><TD class="left">Yes</TD><TD class="left">numerictype(0, 5, 0)</TD></TR>
+<TR class="b">
+<TD class="left">y</TD><TD class="left">double</TD><TD class="right">20</TD><TD class="right">20</TD><TD class="right"></TD><TD class="right"></TD><TD class="left">Yes</TD><TD class="left">numerictype(0, 5, 0)</TD></TR>
+</TABLE>
+
+</body>
+</html>
